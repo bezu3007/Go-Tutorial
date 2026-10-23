@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 type Payer interface {
-	GetSalary() float64
+	CalculatePayment() float64
 }
 
 type Developer struct {
@@ -27,24 +27,46 @@ type Freelancer struct {
 	HourlyRate  float64
 }
 
-func (d Developer) GetSalary() float64 {
+type Contractor struct {
+	Name        string
+	HoursWorked float64
+	HourlyRate  float64
+}
+
+func (d Developer) CalculatePayment() float64 {
 	return d.Salary
 }
 
-func (i Intern) GetSalary() float64 {
+func (i Intern) CalculatePayment() float64 {
 	return i.Stipend
 }
 
-func (m Manager) GetSalary() float64 {
+func (m Manager) CalculatePayment() float64 {
 	return m.Salary + m.Bonus
 }
 
-func (f Freelancer) GetSalary() float64 {
-	return f.HoursWorked * f.HourlyRate
+func calculateHourlyPayment(hours, rate float64) float64 {
+	return hours * rate
+}
+
+func (f Freelancer) CalculatePayment() float64 {
+	return calculateHourlyPayment(f.HoursWorked, f.HourlyRate)
+}
+
+func (c Contractor) CalculatePayment() float64 {
+	return calculateHourlyPayment(c.HoursWorked, c.HourlyRate)
+}
+
+func calculateTotalPayments(payers []Payer) float64 {
+	total := 0.0
+	for _, payer := range payers {
+		total += payer.CalculatePayment()
+	}
+	return total
 }
 
 func printPayment(p Payer) {
-	fmt.Printf("Payment: %.2f ETB\n", p.GetSalary())
+	fmt.Printf("Payment: %.2f ETB\n", p.CalculatePayment())
 }
 
 func main() {
@@ -74,4 +96,14 @@ func main() {
 	printPayment(manager)
 	printPayment(intern)
 	printPayment(freelancer)
+
+	contractor := Contractor{
+		Name:        "Dawit",
+		HoursWorked: 40,
+		HourlyRate:  250,
+	}
+	printPayment(contractor)
+
+	total := calculateTotalPayments([]Payer{dev, manager, intern, freelancer, contractor})
+	fmt.Printf("Total Payments: %.2f ETB\n", total)
 }
